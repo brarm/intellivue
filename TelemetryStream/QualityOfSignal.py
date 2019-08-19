@@ -102,7 +102,11 @@ class QualityOfSignal():
 
         # also remove pulses with a length less than minimal length
         idxx = np.where(beatLeninMS[idx] < minimalBeatLeninMS)
-        idx[idxx] = []
+        # RELOOK: Error received was: ValueError: shape mismatch: value array of shape (0,) could not be broadcast to indexing result of shape (1,)
+        try:
+            idx[idxx] = []
+        except:
+            pass
 
         beatLen = int(np.fix(finalBeatLeninMS * fs/1000))
         sigMat = np.zeros((beatLen, len(idx)))
