@@ -97,7 +97,7 @@ class SampledDataBuffer(object):
 
     def __init__(self, freq, dur):
         self.freq = freq
-        self.dur = dur
+        self.dur = 60
         self.y = np.zeros(self.freq*self.dur)
         self.t = np.zeros(self.freq*self.dur)
         self.start_time = datetime.datetime.now()
@@ -118,7 +118,7 @@ class SampledDataBuffer(object):
         # logging.debug('t0 {0}'.format(t0))
         # logging.debug('t1 {0}'.format(self.t1))
 
-        t0 -= self.t1
+        t0 -= self.t1 
 
         length = values.size or 1  # For scalar
         # logging.debug('len {0}'.format(length))
@@ -370,8 +370,9 @@ def attach_loggers(tstream, opts):
     if opts.file:
         # Add a file stuctured log handler that only saves "INFO" level messages
         # Should be able to include the following parameters here: when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False
-        fh = JSONLogHandler(opts.file, host_time=opts.host_time)
-        fh.setLevel(logging.INFO)
+        #fh = JSONLogHandler(opts.file, host_time=opts.host_time)
+        fh = JSONLogHandler(opts.file)
+        fh.setLevel(logging.DEBUG)
         tstream.logger.addHandler(fh)
 
     if opts.splunk:

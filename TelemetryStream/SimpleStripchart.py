@@ -11,16 +11,19 @@ Dependencies: Numpy, matplotlib
 See README.md for usage, notes, and license info.
 """
 
-
 from __future__ import division
 
 import matplotlib
-#matplotlib.use('TkAgg')  # Better for Mac
-#matplotlib.rcParams['backend'] = "TkAgg"
+# matplotlib.use('macosx')  
+# matplotlib.rcParams['backend'] = "macosx"
+# matplotlib.use('TkAgg') # Better for Mac
+# matplotlib.use('Qt4Agg')
+import matplotlib.pyplot as plt
+
 
 import logging
 from matplotlib.lines import Line2D
-import matplotlib.pyplot as plt
+
 import time
 import datetime
 
@@ -48,21 +51,23 @@ class Stripchart(object):
                 logging.warn('Missing channel: {0}'.format(self.name))
                 return
             samples = channel.get('samples')
-
             logging.debug('Updating channel: {0} over range [{1},{2}] ({3} secs)'\
                           .format(self.name, samples.t.min(), samples.t.max(),
                                   samples.t.max() - samples.t.min()))
-            logging.debug(samples.y)
-            logging.debug(samples.t)
+            print '----------- in update'
+            #logging.debug(samples.y)
+            
 
             self.t = samples.t
             self.line.set_data(samples.t, samples.y)
 
-    def __init__(self, tstream, dur=7, redraw_interval=0.1):
+    def __init__(self, tstream, dur=600, redraw_interval=0.1):
 
         self.redraw_interval = redraw_interval
         self.dur = dur
         self.start_time = datetime.datetime.now()
+
+        print(matplotlib.get_backend())
 
         plt.ion()
 
@@ -106,13 +111,14 @@ class Stripchart(object):
                          horizontalalignment='left',
                          verticalalignment='center',
                          transform=self.fig.transFigure)
-
-        plt.show()
+        print 'here'
+        # plt.savefig('chart.png')
+        # plt.show()
 
         self.tic = time.time()
         self.toc = self.tic
 
-        exit()
+        # exit()
 
     def update_data(self, data, sampled_data):
 
@@ -144,8 +150,14 @@ class Stripchart(object):
             logging.info("REDRAWING")
             current_time = datetime.datetime.now()
             current_secs = (current_time - self.start_time).total_seconds()
-            # self.ax[0].set_xlim(self.strip0.t[0] + 1, self.strip0.t[-1] - 1)
-            self.ax[0].set_xlim(current_secs - self.dur + 1 - 4, current_secs - 1 - 4)
-            self.fig.canvas.draw()
+            try:
+                self.ax[0].set_xlim(self.strip0.t[0] + 1, self.strip0.t[-1] - 1)
+            except:
+                pass
+            # self.ax[0].set_xlim(current_secs - self.dur + 20 - 4, current_secs - 20 - 4)
+            # self.fig.canvas.draw()
+            # need Pillow for jpeg
+            self.fig.savefig('chart.jpg', dpi=100, progressive=True, quality=50)
             self.tic = self.toc
+            
 

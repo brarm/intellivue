@@ -15,6 +15,8 @@ Requires pyserial (for RS232)
 
 from __future__ import unicode_literals
 
+import pdb
+
 import logging
 import time
 from IntellivueProtocol.IntellivueDecoder import IntellivueDecoder
@@ -501,6 +503,7 @@ class PhilipsTelemetryStream(TelemetryStream):
         while not opened:
 
             try:
+                #pdb.set_trace()
                 self.rs232 = RS232(self.port)        # This throws an error if it fails
                 self.initiate_association(blocking)  # This tries to associate for 12 secs and then throws an error if it fails
                 self.set_priority_lists()
