@@ -31,12 +31,12 @@ class SerialServer(rpc.SerialServerServicer):
     def SerialSend(self, request, context):
         message = request.data
         # output serial message to device
-        self.serialDevice.write(message)
+        self.serialDevice.send(message)
         return Serial.Empty()
 
     def SerialReceive(self, request, context):
         message = ''
-        message = self.serialDevice.read()
+        message = self.serialDevice.receive()
         return Serial.SerialMessage(data=message)
 
     def SerialClose(self, request, context):
@@ -48,7 +48,7 @@ def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     rpc.add_SerialServerServicer_to_server(SerialServer(), server)
     print('Starting server. Listening...')
-    server.add_insecure_port('{}:{}'.format(address, port))
+    server.add_insecure_port('[::]:' + str(port))
     server.start()
     try:
         while True:
