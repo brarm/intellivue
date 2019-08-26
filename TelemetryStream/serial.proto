@@ -8,7 +8,7 @@ package serial;
 message Empty {}
 
 message SerialMessage {
-	string data = 1;
+	bytes data = 1;
 }
 
 message SerialPort {
