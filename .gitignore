@@ -9,3 +9,5 @@ NOTES.md
 Philips Data Export Interface Programming Guide.pdf
 *.log
 *log.json
+/TelemetryStream/serial_pb2.py
+/TelemetryStream/serial_pb2_grpc.py
