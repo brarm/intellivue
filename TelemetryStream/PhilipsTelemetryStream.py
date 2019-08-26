@@ -25,6 +25,8 @@ from IntellivueProtocol.IntellivueDistiller import IntellivueDistiller
 from TelemetryStream import *
 from QualityOfSignal import QualityOfSignal as QoS
 
+from client import Client as SerialClient
+
 __description__ = "PERSEUS telemetry stream listener for Philips Invellivue devices with serial connections"
 __version_info__ = ('0', '7', '3')
 __version__ = '.'.join(__version_info__)
@@ -66,7 +68,9 @@ class PhilipsTelemetryStream(TelemetryStream):
         selectedDataTypes = kwargs.get('values')[::2]  # These come in as value, freq pairs; just need names
 
         self.port = serialPort
-        self.rs232 = None  # This will be the socket object
+        # self.rs232 = None  # This will be the socket object
+        # initialize serialstream client
+        self.client = SerialClient()
 
         # Initialize Intellivue Decoder and Distiller
         self.decoder = IntellivueDecoder()
@@ -121,18 +125,21 @@ class PhilipsTelemetryStream(TelemetryStream):
 
         def request_association():
 
-            if not self.rs232:
+            # if not self.rs232:
+            if not self.client:
                 logging.warn('Trying to send an Association Request without a socket!')
                 raise CriticalIOError
             try:
-                self.rs232.send(self.AssociationRequest)
+                # self.rs232.send(self.AssociationRequest)
+                self.client.send_serial(self.AssociationRequest)
                 self.logger.debug('Sent Association Request...')
             except:
                 self.logger.warn("Unable to send Association Request")
                 raise IOError
 
         def receive_association_response():
-            association_message = self.rs232.receive()
+            # association_message = self.rs232.receive()
+            association_message = self.client.receive_serial()
 
             # Could handle no message in getMessageType (hrm)
             if not association_message:
@@ -166,7 +173,8 @@ class PhilipsTelemetryStream(TelemetryStream):
 
         def receive_event_creation(association_message):
             # This is the create event message now
-            event_message = self.rs232.receive()
+            # event_message = self.rs232.receive()
+            event_message = self.client.receive_serial()
 
             message_type = self.decoder.getMessageType(event_message)
             logging.debug('Received ' + message_type + '.')
@@ -194,7 +202,8 @@ class PhilipsTelemetryStream(TelemetryStream):
 
                 # Send MDS Create Event Result
                 self.MDSCreateEventResult = self.decoder.writeData('MDSCreateEventResult', self.MDSParameters)
-                self.rs232.send(self.MDSCreateEventResult)
+                # self.rs232.send(self.MDSCreateEventResult)
+                self.client.send_serial(self.MDSCreateEventResult)
                 logging.debug('Sent MDS Create Event Result...')
                 return
             else:
@@ -240,14 +249,16 @@ class PhilipsTelemetryStream(TelemetryStream):
         self.MDSSetPriorityListWave = self.decoder.writeData('MDSSetPriorityListWAVE', self.desiredWaveParams)
 
         # Send priority lists
-        self.rs232.send(self.MDSSetPriorityListWave)
+        # self.rs232.send(self.MDSSetPriorityListWave)
+        self.client.send_serial(self.MDSSetPriorityListWave)
         logging.debug('Sent MDS Set Priority List Wave...')
 
         # Read in confirmation of changes
         no_confirmation = True
         while no_confirmation:
 
-            message = self.rs232.receive()
+            # message = self.rs232.receive()
+            message = self.client.receive_serial()
             if not message:
                 logging.warn('No priority list msg received!')
                 break
@@ -271,7 +282,8 @@ class PhilipsTelemetryStream(TelemetryStream):
                 logging.warn('Failed to confirm priority list setting.')
 
     def submit_keep_alive(self):
-        self.rs232.send(self.KeepAliveMessage)
+        # self.rs232.send(self.KeepAliveMessage)
+        self.client.send_serial(self.KeepAliveMessage)
         self.last_keep_alive = time.time()
         logging.debug('Sent Keep Alive Message...')
 
@@ -356,14 +368,17 @@ class PhilipsTelemetryStream(TelemetryStream):
         # Have to use `print` in here b/c logging may be gone if there is an error shutdown
 
         # If we have already closed or otherwise lost the port, pass and return
-        if self.rs232 is None:
+        # if self.rs232 is None:
+        if self.client is None:
             logging.error('Trying to close a socket that no longer exists')
             raise IOError
 
         # Send Association Abort and Release Request
-        self.rs232.send(self.AssociationAbort)
+        # self.rs232.send(self.AssociationAbort)
+        self.client.send_serial(self.AssociationAbort)
         logging.debug('Sent Association Abort...')
-        self.rs232.send(self.ReleaseRequest)
+        # self.rs232.send(self.ReleaseRequest)
+        self.client.send_serial(self.ReleaseRequest)
         logging.debug('Sent Release Request...')
 
         not_refused = True
@@ -371,7 +386,8 @@ class PhilipsTelemetryStream(TelemetryStream):
         # Loop to ensure breaking of connection
         count = 0
         while not_refused:
-            message = self.rs232.receive()
+            # message = self.rs232.receive()
+            message = self.client.receive_serial()
 
             if not message:
                 logging.debug('No release msg received!')
@@ -384,26 +400,32 @@ class PhilipsTelemetryStream(TelemetryStream):
             if message_type == 'ReleaseResponse' or message_type == 'AssociationAbort' or message_type == 'TimeoutError' or message_type == 'Unknown':
                 logging.debug('Connection with monitor released.')
             elif count % 12 == 0:
-                self.rs232.send(self.AssociationAbort)
+                # self.rs232.send(self.AssociationAbort)
+                self.client.send_serial(self.AssociationAbort)
                 logging.debug('Re-sent Association Abort...')
-                self.rs232.send(self.ReleaseRequest)
+                # self.rs232.send(self.ReleaseRequest)
+                self.client.send_serial(self.ReleaseRequest)
                 logging.debug('Re-sent Release Request...')
 
             logging.debug('Trying to disconnect {0}'.format(count))
             count += 1
 
-        self.rs232.close()
+        # self.rs232.close()
+        self.client.close_serial()
         self.rs232 = None
 
     def start_polling(self):
         """
         Sends Extended Poll Requests for Numeric, Alarm, and Wave Data
         """
-        self.rs232.send(self.MDSExtendedPollActionNumeric)
+        # self.rs232.send(self.MDSExtendedPollActionNumeric)
+        self.client.send_serial(self.MDSExtendedPollActionNumeric)
         logging.debug('Sent MDS Extended Poll Action for Numerics...')
-        self.rs232.send(self.MDSExtendedPollActionWave)
+        # self.rs232.send(self.MDSExtendedPollActionWave)
+        self.client.send_serial(self.MDSExtendedPollActionWave)
         logging.debug('Sent MDS Extended Poll Action for Waves...')
-        self.rs232.send(self.MDSExtendedPollActionAlarm)
+        # self.rs232.send(self.MDSExtendedPollActionAlarm)
+        self.client.send_serial(self.MDSExtendedPollActionAlarm)
         logging.debug('Sent MDS Extended Poll Action for Alarms...')
 
     def single_poll(self):
@@ -416,7 +438,8 @@ class PhilipsTelemetryStream(TelemetryStream):
 
         m = None
 
-        message = self.rs232.receive()
+        # message = self.rs232.receive()
+        message = self.client.receive_serial()
         if not message:
             logging.warn('No message received')
             if (now - self.last_read_time) > self.timeout:
@@ -529,7 +552,10 @@ class PhilipsTelemetryStream(TelemetryStream):
         while not opened:
 
             try:
-                self.rs232 = RS232(self.port)        # This throws an error if it fails
+                # self.rs232 = RS232(self.port)        # This throws an error if it fails
+                port_response = self.client.open_serial(self.port)
+                if port_response == 'IOError':
+                    raise IOError
                 self.initiate_association(blocking)  # This tries to associate for 12 secs and then throws an error if it fails
                 self.set_priority_lists()
                 self.start_polling()

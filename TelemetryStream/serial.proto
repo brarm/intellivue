@@ -1,0 +1,27 @@
+// Python 2.7 variant
+// uses string for serial data
+
+syntax = "proto3";
+
+package serial;
+
+message Empty {}
+
+message SerialMessage {
+	string data = 1;
+}
+
+message SerialPort {
+    string data = 1;
+}
+
+message PortResponse {
+    string data = 1;
+}
+
+service SerialServer {
+    rpc SerialOpen (SerialPort) returns (PortResponse) {}
+	rpc SerialSend (SerialMessage) returns (Empty) {}
+	rpc SerialReceive (Empty) returns (SerialMessage) {}
+	rpc SerialClose (Empty) returns (Empty) {}
+}
