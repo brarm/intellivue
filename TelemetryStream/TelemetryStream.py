@@ -412,6 +412,7 @@ if __name__ == "__main__":
 
     # Let's say we have some different quality of signal functions that we might want to compute
     def qos(*args, **kwargs):
+        print '--------- QOS Telemetry '
         history = kwargs.get('sampled_data')
         if history:
             val = history.get('ECG').get('samples').y > 0
@@ -420,7 +421,7 @@ if __name__ == "__main__":
             return -1
 
     # Attach any post-processing functions
-    tstream.add_update_func(qos)
+    # tstream.add_update_func(qos)
 
     # Start listening
     tstream.open()

@@ -1,0 +1,5 @@
+{
+  "customer_key"      : "infiniwell",
+  "ingestion_topic"   : "infiniwell-recobro",
+  "fleetstatus_topic" : "infiniwell_fleetstatus"
+}

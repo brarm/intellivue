@@ -14,10 +14,12 @@ See README.md for usage, notes, and license info.
 from __future__ import division
 
 import matplotlib
+
 # matplotlib.use('macosx')  
 # matplotlib.rcParams['backend'] = "macosx"
 # matplotlib.use('TkAgg') # Better for Mac
 # matplotlib.use('Qt4Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -61,7 +63,7 @@ class Stripchart(object):
             self.t = samples.t
             self.line.set_data(samples.t, samples.y)
 
-    def __init__(self, tstream, dur=600, redraw_interval=0.1):
+    def __init__(self, tstream, dur=7, redraw_interval=0.1):
 
         self.redraw_interval = redraw_interval
         self.dur = dur
@@ -73,6 +75,7 @@ class Stripchart(object):
 
         # Create two regions
         self.fig, self.ax = plt.subplots(2, 1, sharex=True)
+        print tstream.sampled_data.keys()
 
         if len(tstream.sampled_data.keys())>0:
             self.name0 = tstream.sampled_data.keys()[0]
@@ -84,9 +87,11 @@ class Stripchart(object):
         else:
             self.name1 = None
 
+        print self.name0, self.name1
+
         def range_of(name):
-            if name.lower() == 'pleth': return (1000, 3000)
-            elif name.lower() == 'ecg': return (-1.2, 1.2)
+            if name.lower() == 'pleth': return (0, 5000)
+            elif 'ecgii' in name.lower(): return (-1.2, 1.2)
             else:
                 logging.warn('Missing range for {0}'.format(name))
                 return (-1,1)
@@ -113,7 +118,7 @@ class Stripchart(object):
                          transform=self.fig.transFigure)
         print 'here'
         # plt.savefig('chart.png')
-        # plt.show()
+        plt.show()
 
         self.tic = time.time()
         self.toc = self.tic

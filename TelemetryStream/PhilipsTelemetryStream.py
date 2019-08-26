@@ -99,10 +99,10 @@ class PhilipsTelemetryStream(TelemetryStream):
         self.MDSGetPriorityList = self.decoder.writeData('MDSGetPriorityList')
         self.MDSGetPriorityListResult = {}
         self.ReleaseRequest = self.decoder.writeData('ReleaseRequest')
-        self.MDSExtendedPollActionNumeric = self.decoder.writeData('MDSExtendedPollActionNUMERIC',
-                                                                   self.dataCollection)
+        # self.MDSExtendedPollActionNumeric = self.decoder.writeData('MDSExtendedPollActionNUMERIC',
+                                                                   # self.dataCollection)
         self.MDSExtendedPollActionWave = self.decoder.writeData('MDSExtendedPollActionWAVE', self.dataCollection)
-        self.MDSExtendedPollActionAlarm = self.decoder.writeData('MDSExtendedPollActionALARM', self.dataCollection)
+        # self.MDSExtendedPollActionAlarm = self.decoder.writeData('MDSExtendedPollActionALARM', self.dataCollection)
         self.KeepAliveMessage = self.decoder.writeData('MDSSinglePollAction')
 
         # Boolean to keep track of whether data should still be polled
@@ -399,12 +399,12 @@ class PhilipsTelemetryStream(TelemetryStream):
         """
         Sends Extended Poll Requests for Numeric, Alarm, and Wave Data
         """
-        self.rs232.send(self.MDSExtendedPollActionNumeric)
-        logging.debug('Sent MDS Extended Poll Action for Numerics...')
+        # self.rs232.send(self.MDSExtendedPollActionNumeric)
+        # logging.debug('Sent MDS Extended Poll Action for Numerics...')
         self.rs232.send(self.MDSExtendedPollActionWave)
         logging.debug('Sent MDS Extended Poll Action for Waves...')
-        self.rs232.send(self.MDSExtendedPollActionAlarm)
-        logging.debug('Sent MDS Extended Poll Action for Alarms...')
+        # self.rs232.send(self.MDSExtendedPollActionAlarm)
+        # logging.debug('Sent MDS Extended Poll Action for Alarms...')
 
     def single_poll(self):
 
@@ -462,15 +462,15 @@ class PhilipsTelemetryStream(TelemetryStream):
     @staticmethod
     def condense(m):
         # Second pass distillation, from long intermediate format to condensed PERSEUS format
-        
-        #print m.keys()
+
+        # print m.keys()
         # logging.debug(m)
 
         # This is 'NOM_ECG_ELEC_POTL_II' on my monitors, but let's map _any_ ECG wave label to ECG
         # especially b/c it seems to change to NOM_ECG_ELEC_POTL_V when leads are changed.
         # 8/15 - With MP50 in demo Mode, ECG finds:
         #           NOM_ECG_ELEC_POTL_II    (Lead II - ECG wave label)
-        #           NOM_ECG_ELEC_POTL_AVR   (Lead aVR - ECG wave label)   
+        #           NOM_ECG_ELEC_POTL_AVR   (Lead aVR - ECG wave label)
         #           NOM_ECG_ELEC_POTL_V2    (ECG Lead V1)
         ecg_waves = []
         ecg_labels = []
@@ -480,15 +480,15 @@ class PhilipsTelemetryStream(TelemetryStream):
             if 'ECG' in key:
                 found_ecg = True
                 ecg_labels.append(key)
-                
+
         if (found_ecg):
             for label in ecg_labels:
                 ecg_wave_tag = 'ECG' + label.split("_")[-1]
                 ecg_tag_and_wave = (ecg_wave_tag, m.get(label))
                 ecg_waves.append(ecg_tag_and_wave)
-        
+
         # for key in m.keys():
-        #     if 'ecg' in key:                
+        #     if 'ecg' in key:
         #         print ('****** %s ******' % (key))
         #         ecg_label = key
         #         ecg_labels.append(ecg_label)
@@ -579,7 +579,7 @@ class PhilipsTelemetryStream(TelemetryStream):
                         except Exception as e:
                             print e
                             traceback.print_exc()
-                            
+
                         # print ('Pleth:')
                         # print (data['Pleth'])
                         # print 'Writing', len(data['Pleth']), 'Pleth values'
@@ -588,10 +588,10 @@ class PhilipsTelemetryStream(TelemetryStream):
                         file_name = 'SpO2_%i.dat' % (millis)
                         file_path = '/tmp/monitor/'
 
-                        with open('/tmp/intellivue-spo2.txt', 'a') as all_spo2_vals:
-                            for i in data['Pleth']:
-                                j = float(i) / float(30.0)
-                                all_spo2_vals.write('%s\n' % repr(j))
+                        # with open('/tmp/intellivue-spo2.txt', 'a') as all_spo2_vals:
+                        #    for i in data['Pleth']:
+                        #        j = float(i) / float(30.0)
+                        #        all_spo2_vals.write('%s\n' % repr(j))
 
                         with open(file_path+file_name,'w') as spo2_file:
                             for i in data['Pleth']:
@@ -634,6 +634,7 @@ class PhilipsTelemetryStream(TelemetryStream):
                             with open(file_path+file_name, 'w') as write_file:
                                 for i in data[ecg_label]:
                                     j = float(i) * float(5/1.5)
+                                    # j = float(i)
                                     write_file.write('%s\n' % repr(j))
 
 
@@ -646,8 +647,11 @@ class PhilipsTelemetryStream(TelemetryStream):
                         #         ecg_file.write("%s\n" % repr(j))
 
 
-                except:
+                except Exception as e:
+                    # print e
+                    # traceback.print_exc()
                     pass
+
                 return data
             except IOError:
                 while 1:
