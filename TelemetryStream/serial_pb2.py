@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='serial',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x0cserial.proto\x12\x06serial\"\x07\n\x05\x45mpty\"\x1d\n\rSerialMessage\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\t\"\x1a\n\nSerialPort\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\t\"\x1c\n\x0cPortResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\t2\xe6\x01\n\x0cSerialServer\x12\x38\n\nSerialOpen\x12\x12.serial.SerialPort\x1a\x14.serial.PortResponse\"\x00\x12\x34\n\nSerialSend\x12\x15.serial.SerialMessage\x1a\r.serial.Empty\"\x00\x12\x37\n\rSerialReceive\x12\r.serial.Empty\x1a\x15.serial.SerialMessage\"\x00\x12-\n\x0bSerialClose\x12\r.serial.Empty\x1a\r.serial.Empty\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x0cserial.proto\x12\x06serial\"\x07\n\x05\x45mpty\"\x1d\n\rSerialMessage\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\"\x1a\n\nSerialPort\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\t\"\x1c\n\x0cPortResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\t2\xe6\x01\n\x0cSerialServer\x12\x38\n\nSerialOpen\x12\x12.serial.SerialPort\x1a\x14.serial.PortResponse\"\x00\x12\x34\n\nSerialSend\x12\x15.serial.SerialMessage\x1a\r.serial.Empty\"\x00\x12\x37\n\rSerialReceive\x12\r.serial.Empty\x1a\x15.serial.SerialMessage\"\x00\x12-\n\x0bSerialClose\x12\r.serial.Empty\x1a\r.serial.Empty\"\x00\x62\x06proto3')
 )
 
 
@@ -59,8 +59,8 @@ _SERIALMESSAGE = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='data', full_name='serial.SerialMessage.data', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
