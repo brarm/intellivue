@@ -556,7 +556,7 @@ class PhilipsTelemetryStream(TelemetryStream):
                 port_response = self.client.open_serial(self.port)
                 if port_response == 'IOError':
                     raise IOError
-                self.initiate_association(blocking)  # This tries to associate for 12 secs and then throws an error if it fails
+                self.initiate_association(True)  # This tries to associate for 12 secs and then throws an error if it fails
                 self.set_priority_lists()
                 self.start_polling()
                 self.last_read_time = time.time()

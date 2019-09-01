@@ -13,7 +13,7 @@ port = 50051
 
 class Client:
     def __init__(self):
-        channel = grpc.insecure_channel(address + ':' + str(port))
+        channel = grpc.insecure_channel('{}:{}'.format(address, str(port)))
         self.conn = rpc.SerialServerStub(channel)
         print('Client connected to server at {}:{}'.format(address, port))
 
@@ -23,7 +23,8 @@ class Client:
         return port_response
 
     def send_serial(self, message):
-        self.conn.SerialSend(Serial.SerialMessage(data=message))
+        serial_message = Serial.SerialMessage(data=message)
+        self.conn.SerialSend(serial_message)
 
     def receive_serial(self):
         data = self.conn.SerialReceive(Serial.Empty()).data
