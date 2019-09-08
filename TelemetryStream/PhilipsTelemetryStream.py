@@ -568,7 +568,7 @@ class PhilipsTelemetryStream(TelemetryStream):
                         data.update(new_data)
 
                 # TODO: This should be sent to the data logger
-                self.logger.info(data)
+                # self.logger.info(data)
                 try:
                     if data['Pleth'] is not None:
                         try:
@@ -588,22 +588,22 @@ class PhilipsTelemetryStream(TelemetryStream):
                         file_name = 'SpO2_%i.dat' % (millis)
                         file_path = '/tmp/monitor/'
 
-                        # with open('/tmp/intellivue-spo2.txt', 'a') as all_spo2_vals:
-                        #    for i in data['Pleth']:
-                        #        j = float(i) / float(30.0)
-                        #        all_spo2_vals.write('%s\n' % repr(j))
+                        with open('/tmp/intellivue-spo2.txt', 'a') as all_spo2_vals:
+                           for i in data['Pleth']:
+                               j = float(i) / float(30.0)
+                               all_spo2_vals.write('%s\n' % repr(j))
 
-                        with open(file_path+file_name,'w') as spo2_file:
-                            for i in data['Pleth']:
-                                '''
-                                j = int(i)
-                                j = ((j - 2048.0) / 512.0) + 96.0;
-                                print j
-                                spo2_file.write("%s\n" % repr(j))
-                                '''
-                                j = float(i) / float(30.0)
-                                #print j
-                                spo2_file.write("%s\n" % repr(j))
+                        # with open(file_path+file_name,'w') as spo2_file:
+                        #     for i in data['Pleth']:
+                        #         '''
+                        #         j = int(i)
+                        #         j = ((j - 2048.0) / 512.0) + 96.0;
+                        #         print j
+                        #         spo2_file.write("%s\n" % repr(j))
+                        #         '''
+                        #         j = float(i) / float(30.0)
+                        #         #print j
+                        #         spo2_file.write("%s\n" % repr(j))
 
                     found_ecg = False
                     ecg_labels = []
@@ -622,8 +622,15 @@ class PhilipsTelemetryStream(TelemetryStream):
                         except Exception as e:
                             print e
                             traceback.print_exc()
-                        # write all ECG waves to separate files
+                        
+                        # write all ECG waves to file
                         for ecg_label in ecg_labels:
+                            ecg_file_name = 'intellivue-{}.txt'.format(ecg_label)
+                            with open('/tmp/' + ecg_file_name, 'a') as all_ecg_vals:
+                                for i in data[ecg_label]:
+                                    j = float(i) * 5/1.5
+                                    all_ecg_vals.write('{}\n'.format(repr(j)))
+
                             # print ecg_label
                             # print data[ecg_label]
 
@@ -631,11 +638,12 @@ class PhilipsTelemetryStream(TelemetryStream):
                             file_name = '%s_%i.dat' % (ecg_label, millis)
                             file_path = '/tmp/monitor/'
 
-                            with open(file_path+file_name, 'w') as write_file:
-                                for i in data[ecg_label]:
-                                    j = float(i) * float(5/1.5)
-                                    # j = float(i)
-                                    write_file.write('%s\n' % repr(j))
+                            # all ecg data also written out in file packets
+                            # with open(file_path+file_name, 'w') as write_file:
+                            #     for i in data[ecg_label]:
+                            #         j = float(i) * float(5/1.5)
+                            #         # j = float(i)
+                            #         write_file.write('%s\n' % repr(j))
 
 
                         #print 'ECG'
