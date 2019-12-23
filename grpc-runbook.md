@@ -1,5 +1,3 @@
-Basic steps to get grpc + intellivue code running
-
 # Introduction
 This library enables streaming, in real time, of Intellivue patient monitor data from a Rasperry Pi to a Desktop Computer. The Raspberry Pi handles the serial connection with the monitor itself, simply collecting and sending the data over a grpc connection.
 
@@ -41,10 +39,11 @@ HW-Rev: A.00.12
 Serial Card: 
 
 The instructions will also assume the following, and the requisite setup steps, without describing them in detail as it may be out of scope and there are also many ways to fulfill the requirements
-0. The RPi can connect to the internet
-1. The RPi has ssh access enabled
+
+1. The RPi can connect to the internet
 2. The RPi can be connected to the same router as the computer (will be required for grpc functionality) 
 3. A RS232 to USB cable (for connecting Intellivue monitor to RPi) (instructions for setup of cable separate, requires cable + serial connector)
+4. Not required, but recommended that the RPi has ssh access enabled. This will prevent the desktop client from potentially affecting functionality when the collection is running.
 
 ## Steps to Set Up Environment
 The intellivue code requires a python 2.7.16+ environment with certain packages installed. In the ideal scenario both computer and RPi have python 2.7.16+ as the base python. (i.e. python --version shows Python 2.7.16). However in reality, this is not often the case. The RPi can be easily controlled, wiped, and replaced, but with desktop environments the same cannot be said.
