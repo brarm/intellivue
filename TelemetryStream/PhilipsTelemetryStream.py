@@ -19,6 +19,7 @@ import logging
 import time
 import sys
 import traceback
+import numpy as np
 from IntellivueProtocol.IntellivueDecoder import IntellivueDecoder
 from IntellivueProtocol.RS232 import RS232
 from IntellivueProtocol.IntellivueDistiller import IntellivueDistiller
@@ -53,6 +54,7 @@ class CriticalIOError(IOError):
 class PhilipsTelemetryStream(TelemetryStream):
     pleth_time = time.time()
     ecg_time = time.time()
+    pleth_prev = []
     """
     This class utilizes the data structures defined in IntellivueDecoder and
     the functions to communicate with the monitor via RS232.
@@ -470,11 +472,15 @@ class PhilipsTelemetryStream(TelemetryStream):
         elif message_type == 'MDSExtendedPollActionResult' or message_type == 'LinkedMDSExtendedPollActionResult':
             decoded_message = self.decoder.readData(message)
             m = self.distiller.refine(decoded_message)
+            if m:
+                self.last_read_time = time.time()
+            '''
             if not m:
-                logging.warn('Failed to distill message: {0}'.format(decoded_message))
+                #logging.warn('Failed to distill message: {0}'.format(decoded_message))
+                logging.warn('Failed to distill message')
             else:
                 self.last_read_time = time.time()
-
+            '''
         else:
             logging.warn('Received {0}'.format(message_type))
 
@@ -485,7 +491,7 @@ class PhilipsTelemetryStream(TelemetryStream):
     @staticmethod
     def condense(m):
         # Second pass distillation, from long intermediate format to condensed PERSEUS format
-        
+
         #print m.keys()
         # logging.debug(m)
 
@@ -493,7 +499,7 @@ class PhilipsTelemetryStream(TelemetryStream):
         # especially b/c it seems to change to NOM_ECG_ELEC_POTL_V when leads are changed.
         # 8/15 - With MP50 in demo Mode, ECG finds:
         #           NOM_ECG_ELEC_POTL_II    (Lead II - ECG wave label)
-        #           NOM_ECG_ELEC_POTL_AVR   (Lead aVR - ECG wave label)   
+        #           NOM_ECG_ELEC_POTL_AVR   (Lead aVR - ECG wave label)
         #           NOM_ECG_ELEC_POTL_V2    (ECG Lead V1)
         ecg_waves = []
         ecg_labels = []
@@ -503,15 +509,15 @@ class PhilipsTelemetryStream(TelemetryStream):
             if 'ECG' in key:
                 found_ecg = True
                 ecg_labels.append(key)
-                
+
         if (found_ecg):
             for label in ecg_labels:
                 ecg_wave_tag = 'ECG' + label.split("_")[-1]
                 ecg_tag_and_wave = (ecg_wave_tag, m.get(label))
                 ecg_waves.append(ecg_tag_and_wave)
-        
+
         # for key in m.keys():
-        #     if 'ecg' in key:                
+        #     if 'ecg' in key:
         #         print ('****** %s ******' % (key))
         #         ecg_label = key
         #         ecg_labels.append(ecg_label)
@@ -594,18 +600,16 @@ class PhilipsTelemetryStream(TelemetryStream):
                         data.update(new_data)
 
                 # TODO: This should be sent to the data logger
-                self.logger.info(data)
+                # self.logger.info(data)
+                # if data:
                 try:
                     if data['Pleth'] is not None:
-                        try:
-                            pleth_delta = time.time() - PhilipsTelemetryStream.pleth_time
-                            print '%.5f :----- Pleth time\n' % pleth_delta,
-                            PhilipsTelemetryStream.pleth_time = time.time()
+                       
+                        pleth_delta = time.time() - PhilipsTelemetryStream.pleth_time
+                        outs = '{:.5f} |----- Pleth delta'.format(pleth_delta)
+                        print(outs)
+                        PhilipsTelemetryStream.pleth_time = time.time()
 
-                        except Exception as e:
-                            print e
-                            traceback.print_exc()
-                            
                         # print ('Pleth:')
                         # print (data['Pleth'])
                         # print 'Writing', len(data['Pleth']), 'Pleth values'
@@ -614,23 +618,26 @@ class PhilipsTelemetryStream(TelemetryStream):
                         file_name = 'SpO2_%i.dat' % (millis)
                         file_path = '/tmp/monitor/'
 
+                        if np.array_equal(PhilipsTelemetryStream.pleth_prev, data['Pleth']):
+                            PhilipsTelemetryStream.pleth_prev = data['Pleth']
+                            raise ValueError('Data packet seems to be a duplicate. Skipping it.')
+                        else:
+                            PhilipsTelemetryStream.pleth_prev = data['Pleth']
+
                         with open('/tmp/intellivue-spo2.txt', 'a') as all_spo2_vals:
                             for i in data['Pleth']:
                                 j = float(i) / float(30.0)
                                 all_spo2_vals.write('%s\n' % repr(j))
 
+                        '''
+                        # write SpO2 wave packets to files
                         with open(file_path+file_name,'w') as spo2_file:
                             for i in data['Pleth']:
-                                '''
-                                j = int(i)
-                                j = ((j - 2048.0) / 512.0) + 96.0;
-                                print j
-                                spo2_file.write("%s\n" % repr(j))
-                                '''
+                                #j = int(i)
+                                #j = ((j - 2048.0) / 512.0) + 96.0;
                                 j = float(i) / float(30.0)
-                                #print j
                                 spo2_file.write("%s\n" % repr(j))
-
+                        '''
                     found_ecg = False
                     ecg_labels = []
                     for key in data.keys():
@@ -640,19 +647,22 @@ class PhilipsTelemetryStream(TelemetryStream):
 
 
                     if found_ecg:
-                        try:
-                            ecg_delta = time.time() - PhilipsTelemetryStream.ecg_time
-                            print '%.5f :----- ecg time\n' % ecg_delta,
-                            PhilipsTelemetryStream.ecg_time = time.time()
+                        ecg_delta = time.time() - PhilipsTelemetryStream.ecg_time
+                        outs = '{:.5f} |----- ECG delta'.format(ecg_delta)
+                        #logging.debug(outs)
+                        print(outs)
+                        PhilipsTelemetryStream.ecg_time = time.time()
 
-                        except Exception as e:
-                            print e
-                            traceback.print_exc()
-                        # write all ECG waves to separate files
                         for ecg_label in ecg_labels:
-                            # print ecg_label
-                            # print data[ecg_label]
+                            ecg_file_name = 'intellivue-{}.txt'.format(ecg_label)
+                            with open('/tmp/' + ecg_file_name, 'a') as all_ecg_vals:
+                                for i in data[ecg_label]:
+                                    j = float(i) * 5/1.5
+                                    all_ecg_vals.write('{}\n'.format(repr(j)))
 
+                        # write all ECG waves to separate files
+                        '''
+                        for ecg_label in ecg_labels:
                             millis = int(round(time.time() * 1000))
                             file_name = '%s_%i.dat' % (ecg_label, millis)
                             file_path = '/tmp/monitor/'
@@ -661,6 +671,7 @@ class PhilipsTelemetryStream(TelemetryStream):
                                 for i in data[ecg_label]:
                                     j = float(i) * float(5/1.5)
                                     write_file.write('%s\n' % repr(j))
+                        '''
 
 
                         #print 'ECG'
@@ -671,9 +682,13 @@ class PhilipsTelemetryStream(TelemetryStream):
                         #         #print j
                         #         ecg_file.write("%s\n" % repr(j))
 
-
-                except:
+                except ValueError as err:
+                    print err.args
                     pass
+                except TypeError:
+                    pass
+
+
                 return data
             except IOError:
                 while 1:
@@ -703,8 +718,8 @@ class PhilipsTelemetryStream(TelemetryStream):
 
 if __name__ == '__main__':
 
-    #logging.basicConfig(level=logging.DEBUG)
-    logging.basicConfig(level=logging.ERROR)
+    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.ERROR)
 
     opts = parse_args()
     # opts.splunk = "perseus"
@@ -718,11 +733,10 @@ if __name__ == '__main__':
                                      polling_interval=0.05)
 
     # Attach any post-processing functions
-    tstream.add_update_func(qos)
-    attach_loggers(tstream, opts)
+    #tstream.add_update_func(qos)
+    #attach_loggers(tstream, opts)
 
     if not opts.gui:
-
         # Create a main loop that just echoes the results to the loggers
         tstream.run(blocking=True)
 

@@ -7,7 +7,8 @@ import threading
 import serial_pb2 as Serial
 import serial_pb2_grpc as rpc
 
-address = 'infiniwell037'
+#address = 'infiniwell037'
+address = '192.168.254.158'
 port = 50051
 
 
@@ -38,4 +39,5 @@ if __name__ == '__main__':
     c = Client()
     logging.basicConfig()
     while 1:
-        time.sleep(60 * 60 * 240)
+        #time.sleep(60 * 60 * 240)
+        time.sleep(1)

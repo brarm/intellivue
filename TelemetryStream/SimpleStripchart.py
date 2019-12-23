@@ -14,16 +14,15 @@ See README.md for usage, notes, and license info.
 from __future__ import division
 
 import matplotlib
-# matplotlib.use('macosx')  
+# matplotlib.use('macosx')
 # matplotlib.rcParams['backend'] = "macosx"
 # matplotlib.use('TkAgg') # Better for Mac
 # matplotlib.use('Qt4Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
-
-import logging
 from matplotlib.lines import Line2D
 
+import logging
 import time
 import datetime
 
@@ -56,7 +55,7 @@ class Stripchart(object):
                                   samples.t.max() - samples.t.min()))
             print '----------- in update'
             #logging.debug(samples.y)
-            
+
 
             self.t = samples.t
             self.line.set_data(samples.t, samples.y)
@@ -85,10 +84,11 @@ class Stripchart(object):
             self.name1 = None
 
         def range_of(name):
-            if name.lower() == 'pleth': return (1000, 3000)
-            elif name.lower() == 'ecg': return (-1.2, 1.2)
-            else:
-                logging.warn('Missing range for {0}'.format(name))
+            try:
+                if name.lower() == 'pleth': return (1000, 3000)
+                elif name.lower() == 'ecg': return (-1.2, 1.2)
+            except:
+                #logging.warn('Missing range for {0}'.format(name))
                 return (-1,1)
 
         self.strip0 = Stripchart.Datastrip(self.name0, range_of(self.name0), self.ax[0])
@@ -112,8 +112,8 @@ class Stripchart(object):
                          verticalalignment='center',
                          transform=self.fig.transFigure)
         print 'here'
-        # plt.savefig('chart.png')
-        # plt.show()
+        plt.savefig('chart.jpg')
+        plt.show()
 
         self.tic = time.time()
         self.toc = self.tic
@@ -159,5 +159,5 @@ class Stripchart(object):
             # need Pillow for jpeg
             self.fig.savefig('chart.jpg', dpi=100, progressive=True, quality=50)
             self.tic = self.toc
-            
+
 

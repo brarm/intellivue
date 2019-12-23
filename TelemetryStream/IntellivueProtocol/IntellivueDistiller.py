@@ -121,7 +121,7 @@ class IntellivueDistiller(object):
 
                                         # Sampling frequency
 
-                                        logging.debug(decoded_message['PollMdibDataReplyExt']['PollInfoList'][singleContextPolls]['SingleContextPoll']['poll_info'][observationPolls]['ObservationPoll']['AttributeList']['AVAType'])
+                                        #logging.debug(decoded_message['PollMdibDataReplyExt']['PollInfoList'][singleContextPolls]['SingleContextPoll']['poll_info'][observationPolls]['ObservationPoll']['AttributeList']['AVAType'])
 
                                         fs = int(8000/decoded_message['PollMdibDataReplyExt']['PollInfoList'][singleContextPolls]['SingleContextPoll']['poll_info'][observationPolls]['ObservationPoll']['AttributeList']['AVAType']['NOM_ATTR_TIME_PD_SAMP']['AttributeValue']['RelativeTime'])
 
